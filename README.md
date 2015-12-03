@@ -3,7 +3,7 @@
 My configuration files for Emacs and more.
 It uses [pallet](https://github.com/rdallasgray/pallet).
 
-You should be able to do `M-x pallet-mode` and then `M-x pallet-install`.
+Move the Cask file to `~/.emacs.d/` and then you should be able to do `M-x pallet-mode` and then `M-x pallet-install` and have it auto-install everything.
 
 ### Elm 
 elm-mode, elm-oracle autocomplete (you have to install elm-oracle on your own), flycheck.
