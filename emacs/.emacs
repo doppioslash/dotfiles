@@ -2,7 +2,7 @@
 (cask-initialize)
 (require 'pallet)
 (pallet-mode t)
-; (setq debug-on-error t)
+(setq debug-on-error t)
 ;; ido - always keep this, no deps
 (ido-mode t)
 (setq ido-enable-prefix nil
@@ -73,11 +73,12 @@ your recently and most frequently used commands.")
 (flycheck-tip-use-timer 'verbose)
 
 ;; COMPANY
+(require 'company)
 (add-hook 'after-init-hook 'global-company-mode)
 
 ;; AUTO-COMPLETE
-(require 'auto-complete-config)
-(ac-config-default)
+;(require 'auto-complete-config)
+;(ac-config-default)
 
 ;;-----------------
 ;; ERLANG
@@ -120,10 +121,14 @@ your recently and most frequently used commands.")
         ;; pretty much anywhere without having to muck with NetInfo
         ;; ... but I only tested it on Mac OS X.
                 (car (split-string (shell-command-to-string "hostname"))))))
+
 (push "~/.emacs.d/company-distel/" load-path)
 (require 'company-distel)
-(with-eval-after-load 'company
-  (add-to-list 'company-backends 'company-distel))
+
+(add-hook 'erlang-mode-hook
+          (lambda ()
+            (setq company-backends '(company-distel))))
+;            (set (make-local-variable 'company-backends) '(company-distel))))
 (require 'company-distel-frontend)
 
 ;;-----------------
@@ -131,27 +136,29 @@ your recently and most frequently used commands.")
 (require 'elm-mode)
 
 (add-hook 'flycheck-mode-hook 'flycheck-elm-setup)
-(with-eval-after-load 'company
-  (add-to-list 'company-backends 'company-elm))
+(add-hook 'elm-mode-hook
+          (lambda ()
+            (setq company-backends '(company-elm))))
+;            (set (make-local-variable 'company-backends) '(company-elm))))
 
 (add-hook 'elm-mode-hook #'elm-oracle-setup-completion)
 
-;(add-hook 'elm-mode-hook
-;          '(lambda ()
-;            (flycheck-select-checker 'elm)
-;                        (flycheck-mode)))
+;;-----------------
+;; LFE
 
-;(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- ;'(flycheck-checkers
-  ; (quote
-   ; (ada-gnat asciidoc c/c++-clang c/c++-gcc c/c++-cppcheck cfengine chef-foodcritic coffee coffee-coffeelint coq css-csslint d-dmd elm emacs-lisp emacs-lisp-checkdoc erlang eruby-erubis fortran-gfortran go-gofmt go-golint go-vet go-build go-test go-errcheck groovy haml handlebars haskell-stack-ghc haskell-ghc haskell-hlint html-tidy jade javascript-jshint javascript-eslint javascript-gjslint javascript-jscs javascript-standard json-jsonlint json-python-json less luacheck lua perl perl-perlcritic php php-phpmd php-phpcs puppet-parser puppet-lint python-flake8 python-pylint python-pycompile r-lintr rpm-rpmlint rst-sphinx rst ruby-rubocop ruby-rubylint ruby ruby-jruby rust-cargo rust sass scala scala-scalastyle scss-lint scss sh-bash sh-posix-dash sh-posix-bash sh-zsh sh-shellcheck slim sql-sqlint tex-chktex tex-lacheck texinfo verilog-verilator xml-xmlstarlet xml-xmllint yaml-jsyaml yaml-ruby))))
-;(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- ;)
+(setq load-path (cons "~/Code/LFE/lfe/emacs" load-path))
+(require 'lfe-start)
+
+;;-----------------
+;; MARKDOWN
+
+(autoload 'markdown-mode "markdown-mode"
+  "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+
+;;-----------------
+;; COQ
+
+(load-file "~/.emacs.d/ProofGeneral-4.2/generic/proof-site.el")
