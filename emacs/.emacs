@@ -17,8 +17,10 @@
 ;; dep: ido-ubiquitous
 (require 'ido-ubiquitous)
 (ido-ubiquitous-mode t)
+(require 'togetherly)
 
 ;; misc - no deps
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 (global-auto-revert-mode t)
 (fset 'yes-or-no-p 'y-or-n-p)
 (menu-bar-mode -1)
@@ -53,6 +55,9 @@
 ;; ignore case in completion
 (setq read-file-name-completion-ignore-case t)
 
+;; VC
+(require 'ahg)
+
 ;; dep: smex
 (require 'smex)
 (smex-initialize)
@@ -61,6 +66,23 @@
 your recently and most frequently used commands.")
 
 (global-set-key (kbd "M-x") 'smex)
+
+;; use-package
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+;; some functions stolen from ohai
+(use-package f)
+(use-package s)
+(use-package dash)
+
+(defun ohai/font-lock-replace-symbol (mode reg sym)
+    "Given a major mode `mode', replace the regular expression `reg' with
+the symbol `sym' when rendering."
+    (font-lock-add-keywords
+     mode `((,reg
+             (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                                                            ,sym 'decompose-region)))))))
 
 ;;-------------------
 ;; LANGUAGES
@@ -75,19 +97,78 @@ your recently and most frequently used commands.")
 ;; COMPANY
 (require 'company)
 (add-hook 'after-init-hook 'global-company-mode)
+(add-to-list 'company-backends 'company-tern)
 
 ;; AUTO-COMPLETE
 ;(require 'auto-complete-config)
 ;(ac-config-default)
 
 ;;-----------------
+;; Ansible
+
+(add-hook 'yaml-mode-hook '(lambda () (ansible 1)))
+
+;;-----------------
+;; Purescript
+
+(use-package purescript-mode
+             :commands purescript-mode
+             :mode (("\\.purs$" . purescript-mode))
+             :config
+             (add-hook 'purescript-mode-hook 'turn-on-purescript-indentation)
+             ;; Change some ASCII art syntax into their corresponding Unicode characters.
+             ;; Rebind the same Unicode characters to insert their ASCII art versions
+             ;; if entered from the keyboard.
+             (with-eval-after-load "purescript-mode"
+               (ohai/font-lock-replace-symbol 'purescript-mode "\\(->\\)" "→")
+               (ohai/font-lock-replace-symbol 'purescript-mode "\\(<-\\)" "←")
+               (ohai/font-lock-replace-symbol 'purescript-mode "\\(=>\\)" "⇒")
+               (define-key purescript-mode-map (kbd "→") (lambda () (interactive) (insert "->")))
+               (define-key purescript-mode-map (kbd "←") (lambda () (interactive) (insert "<-")))
+                   (define-key purescript-mode-map (kbd "⇒") (lambda () (interactive) (insert "=>")))))
+
+(require 'psc-ide)
+
+(use-package psc-ide
+             :ensure nil
+             :load-path "site-lisp/psc-ide-emacs"
+             :init
+             ;; psc-ide
+             (setq psc-ide-client-executable "/Users/doppioslash/.psvm/current/bin/psc-ide-client")
+             (setq psc-ide-server-executable "/Users/doppioslash/.psvm/current/bin/psc-ide-server")
+             (setq psc-ide-rebuild-on-save nil)
+             :config
+               (add-hook 'purescript-mode-hook 'psc-ide-mode))
+
+;;-----------------
+;; Rust
+(add-hook 'rust-mode-hook #'racer-mode)
+(add-hook 'racer-mode-hook #'eldoc-mode)
+(add-hook 'racer-mode-hook #'company-mode)
+(add-hook 'rust-mode-hook
+          '(lambda ()
+             (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+                          (local-set-key (kbd "TAB") #'company-indent-or-complete-common)))
+(setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
+(global-set-key (kbd "TAB") #'company-indent-or-complete-common) ;
+(setq company-tooltip-align-annotations t)
+
+;;-----------------
+;; Javascript
+(autoload 'tern-mode "tern.el" nil t)
+(add-hook 'js-mode-hook 'js2-minor-mode)
+(add-hook 'js2-mode-hook 'ac-js2-mode)
+(setq js2-highlight-level 3)
+(add-hook 'js2-mode-hook (lambda () (tern-mode t)))
+
+;;-----------------
 ;; ERLANG
-(setq load-path (cons "~/.erlangs/18.1/lib/tools-2.8.1/emacs"
+(setq load-path (cons "~/.erlangs/18.2.1/lib/tools-2.8.2/emacs"
                       load-path))
 (require 'erlang-start)
-(setq erlang-root-dir "~/.erlangs/18.1/")
-(setq exec-path (cons "~/.erlangs/18.1/bin" exec-path))
-(setq erlang-man-root-dir "~/.erlangs/18.1/man")
+(setq erlang-root-dir "~/.erlangs/18.2.1/")
+(setq exec-path (cons "~/.erlangs/18.2.1/bin" exec-path))
+(setq erlang-man-root-dir "~/.erlangs/18.2.1/man")
 
 ;; FLYCHECK
 (flycheck-define-checker erlang-otp
@@ -162,3 +243,12 @@ your recently and most frequently used commands.")
 ;; COQ
 
 (load-file "~/.emacs.d/ProofGeneral-4.2/generic/proof-site.el")
+
+;;----------------
+;; ELIXIR
+(require 'alchemist)
+
+;;----------------
+;; JS
+
+(require 'json-mode)
