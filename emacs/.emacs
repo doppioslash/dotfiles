@@ -1,3 +1,10 @@
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (require 'cask "/usr/local/share/emacs/site-lisp/cask/cask.el") ;;<- home-brew cask
 (cask-initialize)
 (require 'pallet)
@@ -92,21 +99,41 @@ the symbol `sym' when rendering."
  (add-hook 'after-init-hook #'global-flycheck-mode) ;; global flycheck mode, still need to set a checker
 (require 'flycheck-tip)
 ;;(define-key your-prog-mode (kbd "C-c C-n") 'flycheck-tip-cycle)
-(flycheck-tip-use-timer 'verbose)
+;;(flycheck-tip-use-timer 'verbose)
 
 ;; COMPANY
 (require 'company)
 (add-hook 'after-init-hook 'global-company-mode)
 (add-to-list 'company-backends 'company-tern)
+(global-set-key (kbd "M-TAB") 'company-complete)
 
 ;; AUTO-COMPLETE
 ;(require 'auto-complete-config)
 ;(ac-config-default)
 
 ;;-----------------
+;; Shen
+(quelpa
+ '(shen-elisp
+   :repo "deech/shen-elisp"
+   :fetcher github
+   :files ("shen*.el"))
+    :upgrade 't)
+
+;;-----------------
+;; Idris
+
+(require 'idris-mode)
+
+;;-----------------
 ;; Ansible
 
 (add-hook 'yaml-mode-hook '(lambda () (ansible 1)))
+
+;;----------------
+;; HASKELL
+
+(add-hook 'haskell-mode-hook 'intero-mode)
 
 ;;-----------------
 ;; Purescript
@@ -128,6 +155,13 @@ the symbol `sym' when rendering."
                    (define-key purescript-mode-map (kbd "⇒") (lambda () (interactive) (insert "=>")))))
 
 (require 'psc-ide)
+(add-hook 'purescript-mode-hook
+          (lambda ()
+            (psc-ide-mode)
+            (company-mode)
+            (flycheck-mode)
+            (turn-on-purescript-indentation)
+            (customize-set-variable 'psc-ide-add-import-on-completion t)))
 
 (use-package psc-ide
              :ensure nil
@@ -139,19 +173,37 @@ the symbol `sym' when rendering."
              (setq psc-ide-rebuild-on-save nil)
              :config
                (add-hook 'purescript-mode-hook 'psc-ide-mode))
+;((purescript-mode
+;  . ((psc-ide-source-globs
+;      . ("src/**/*.purs" "bower_components/purescript-*/src/**/*.purs")))))
 
 ;;-----------------
 ;; Rust
-(add-hook 'rust-mode-hook #'racer-mode)
-(add-hook 'racer-mode-hook #'eldoc-mode)
-(add-hook 'racer-mode-hook #'company-mode)
+
 (add-hook 'rust-mode-hook
           '(lambda ()
-             (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
-                          (local-set-key (kbd "TAB") #'company-indent-or-complete-common)))
-(setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
-(global-set-key (kbd "TAB") #'company-indent-or-complete-common) ;
-(setq company-tooltip-align-annotations t)
+             (setq tab-width 2)
+             (setq racer-cmd (concat (getenv "HOME") "/.cargo/bin/racer")) ;; Rustup binaries PATH
+             (setq racer-rust-src-path (concat (getenv "HOME") "/.rust/rust/src"))
+             (setq company-tooltip-align-annotations t)
+             (add-hook 'rust-mode-hook #'racer-mode)
+             (add-hook 'racer-mode-hook #'eldoc-mode)
+             (add-hook 'racer-mode-hook #'company-mode)
+
+             (add-hook 'rust-mode-hook 'cargo-minor-mode)
+             (local-set-key (kbd "TAB") #'company-indent-or-complete-common)
+             (local-set-key (kbd "C-c <tab>") #'rust-format-buffer)))
+(add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+;(add-hook 'rust-mode-hook #'racer-mode)
+;(add-hook 'racer-mode-hook #'eldoc-mode)
+;(add-hook 'racer-mode-hook #'company-mode)
+;(add-hook 'rust-mode-hook
+;          '(lambda ()
+;             (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+;                          (local-set-key (kbd "TAB") #'company-indent-or-complete-common)))
+;(setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
+;(global-set-key (kbd "TAB") #'company-indent-or-complete-common) ;
+;(setq company-tooltip-align-annotations t)
 
 ;;-----------------
 ;; Javascript
@@ -171,19 +223,19 @@ the symbol `sym' when rendering."
 (setq erlang-man-root-dir "~/.erlangs/18.2.1/man")
 
 ;; FLYCHECK
-(flycheck-define-checker erlang-otp
-                         "An Erlang syntax checker using the Erlang interpreter."
-                         :command ("erlc" "-o" temporary-directory "-Wall"
-                                   "-I" "../include" "-I" "../../include"
-                                   "-I" "../../../include" source)
-                         :error-patterns
-                         ((warning line-start (file-name) ":" line ": Warning:" (message) line-end)
-                          (error line-start (file-name) ":" line ": " (message) line-end)))
-
-(add-hook 'erlang-mode-hook
-          (lambda ()
-            (flycheck-select-checker 'erlang-otp)
-            (flycheck-mode)))
+;(flycheck-define-checker erlang-otp
+;                         "An Erlang syntax checker using the Erlang interpreter."
+;                         :command ("erlc" "-o" temporary-directory "-Wall"
+;                                   "-I" "../include" "-I" "../../include"
+;                                   "-I" "../../../include" source)
+;                         :error-patterns
+;                         ((warning line-start (file-name) ":" line ": Warning:" (message) line-end)
+;                          (error line-start (file-name) ":" line ": " (message) line-end)))
+;;(add-to-list 'flycheck-checkers 'erlang-otp)
+;(add-hook 'erlang-mode-hook
+;          (lambda ()
+;            (flycheck-select-checker 'erlang-otp)
+;            (flycheck-mode)))
 
 ;; DISTEL
 (push "~/.emacs.d/distel/elisp/" load-path)
@@ -246,9 +298,42 @@ the symbol `sym' when rendering."
 
 ;;----------------
 ;; ELIXIR
+
 (require 'alchemist)
+(defun mg/alchemist-run-credo-on-project ()
+  "Run credo on project"
+  (interactive)
+  (alchemist-mix-execute "credo"))
+(define-key alchemist-mode-keymap (kbd "p c") 'mg/alchemist-run-credo-on-project)
+(load-file "~/.emacs.d/flycheck-elixir-credo/flycheck-elixir-credo.el")
+(use-package flycheck-elixir-credo
+  :defer t
+  :ensure f
+  :init (add-hook 'elixir-mode-hook 'flycheck-elixir-credo-setup))
+
 
 ;;----------------
 ;; JS
 
 (require 'json-mode)
+
+
+;;----------------
+;; AGDA
+
+;(load-file (let ((coding-system-for-read 'utf-8))
+;                (shell-command-to-string "agda-mode locate")))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (alchemist auto-complete cask company dash f flycheck haskell-mode highlight package-build rust-mode seq use-package elixir-mode s toml-mode togetherly smex shen-elisp racket-mode racer quelpa-use-package purescript-mode psc-ide pallet markdown-mode json-mode js2-mode intero idris-mode ido-ubiquitous flycheck-tip flycheck-rust flycheck-elm flycheck-cask floobits elm-mode company-tern cargo ansible ahg ac-alchemist))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
