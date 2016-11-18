@@ -170,7 +170,7 @@ the symbol `sym' when rendering."
              ;; psc-ide
              (setq psc-ide-client-executable "/Users/doppioslash/.psvm/current/bin/psc-ide-client")
              (setq psc-ide-server-executable "/Users/doppioslash/.psvm/current/bin/psc-ide-server")
-             (setq psc-ide-rebuild-on-save nil)
+             (setq psc-ide-rebuild-on-save t)
              :config
                (add-hook 'purescript-mode-hook 'psc-ide-mode))
 ;((purescript-mode
@@ -258,11 +258,11 @@ the symbol `sym' when rendering."
 (push "~/.emacs.d/company-distel/" load-path)
 (require 'company-distel)
 
-(add-hook 'erlang-mode-hook
-          (lambda ()
-            (setq company-backends '(company-distel))))
+;(add-hook 'erlang-mode-hook
+;          (lambda ()
+;            (setq company-backends '(company-distel))))
 ;            (set (make-local-variable 'company-backends) '(company-distel))))
-(require 'company-distel-frontend)
+;(require 'company-distel-frontend)
 
 ;;-----------------
 ;; ELM
